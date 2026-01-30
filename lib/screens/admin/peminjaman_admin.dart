@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/widget/admin/crud_peminjaman.dart';
-import '../drawer/app_drawer.dart';
+import '../drawer/drawer_admin.dart';
 import 'pengembalian_admin.dart';
-import 'package:peminjaman_alat/widget/admin/crud_peminjaman.dart'; // pastikan file ini ada
 
 class PeminjamanAdmin extends StatefulWidget {
   const PeminjamanAdmin({super.key});

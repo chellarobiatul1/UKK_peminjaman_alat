@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../drawer/app_drawer.dart';
+import '../drawer/drawer_admin.dart';
 import 'package:peminjaman_alat/widget/admin/crud_pengguna.dart';
 
 class PenggunaAdmin extends StatefulWidget {

@@ -1,8 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/admin/dashboard_admin.dart';
+import '../../data/users_model.dart';
+import '../admin/dashboard_admin.dart';
+import '../petugas/dashboard_petugas.dart';
+import '../peminjam/daftar_alat.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void login() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    try {
+      final user = dummyUsers.firstWhere(
+        (u) => u.email == email && u.password == password,
+      );
+
+      if (user.role == Role.admin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+        );
+      } else if (user.role == Role.petugas) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPetugas()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DaftarAlat()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email atau password salah')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +57,11 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // LOGO
               Image.asset(
                 'assets/images/ilustrasi_login.png',
                 width: 120,
               ),
               const SizedBox(height: 12),
-
               const Text(
                 'TEKNIK LISTRIK',
                 style: TextStyle(
@@ -28,11 +69,9 @@ class LoginPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // EMAIL
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email address',
                   filled: true,
@@ -43,11 +82,9 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 14),
-
-              // PASSWORD
               TextField(
+                controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -59,23 +96,12 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 46,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                         builder: (context) => const DashboardAdmin(),
-                         ),
-                         );
-                         },
-
+                  onPressed: login,
                   child: const Text(
                     'Login',
                     style: TextStyle(fontSize: 16),

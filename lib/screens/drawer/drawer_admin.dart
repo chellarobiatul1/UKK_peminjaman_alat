@@ -4,6 +4,7 @@ import 'package:peminjaman_alat/screens/admin/dashboard_admin.dart';
 import 'package:peminjaman_alat/screens/admin/pengembalian_admin.dart';
 import 'package:peminjaman_alat/screens/admin/pengguna_admin.dart';
 import 'package:peminjaman_alat/screens/admin/peminjaman_admin.dart';
+import 'package:peminjaman_alat/screens/auth/login_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -23,7 +24,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.person),
             title: const Text('Pengguna'),
             onTap: () {
-              Navigator.pop(context); // tutup drawer
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -33,12 +34,11 @@ class AppDrawer extends StatelessWidget {
             },
           ),
 
-          /// 👉 MENU ALAT
           ListTile(
             leading: const Icon(Icons.build),
             title: const Text('Alat'),
             onTap: () {
-              Navigator.pop(context); // tutup drawer dulu
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -67,10 +67,10 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Peminjaman'),
             onTap: () {
               Navigator.pop(context);
-               Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>  PeminjamanAdmin(),
+                  builder: (context) => PeminjamanAdmin(),
                 ),
               );
             },
@@ -81,7 +81,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Pengembalian'),
             onTap: () {
               Navigator.pop(context);
-               Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const PengembalianAdmin(),
@@ -98,9 +98,34 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DashboardAdmin(),
+                  builder: (context) => const DashboardAdmin(), // Ganti jika ada halaman log
                 ),
               );
+            },
+          ),
+
+          const Divider(), // garis pemisah
+
+          /// 👉 LOGOUT
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: () {
+              Navigator.pop(context); // tutup drawer dulu
+              
+              // Navigasi ke halaman login dan hapus history
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+              );
+
+              // Jika ada fungsi logout sebenarnya (hapus token, session, dll)
+              // AuthService.logout();
             },
           ),
         ],

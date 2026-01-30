@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/drawer/app_drawer.dart';
+import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
 
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
