@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/widget/admin/crud_peminjaman.dart';
+import 'package:peminjaman_alat/widget/admin/edit_peminjaman.dart';
 import '../drawer/drawer_admin.dart';
 import 'pengembalian_admin.dart';
 
@@ -49,7 +49,7 @@ class _PeminjamanAdminState extends State<PeminjamanAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const DrawerAdmin(),
       body: Column(
         children: [
           // HEADER

@@ -76,7 +76,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const DrawerAdmin(),
       backgroundColor: const Color.fromRGBO(238, 238, 238, 1),
       appBar: AppBar(
         backgroundColor: const Color(0xFFE9B9A4),

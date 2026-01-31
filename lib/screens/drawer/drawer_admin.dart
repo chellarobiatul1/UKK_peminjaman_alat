@@ -6,8 +6,8 @@ import 'package:peminjaman_alat/screens/admin/pengguna_admin.dart';
 import 'package:peminjaman_alat/screens/admin/peminjaman_admin.dart';
 import 'package:peminjaman_alat/screens/auth/login_page.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class DrawerAdmin extends StatelessWidget {
+  const DrawerAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {

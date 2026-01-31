@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/widget/admin/crud_alat.dart';
+import 'package:peminjaman_alat/widget/admin/edit_alat.dart';
+import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
 import 'kategori_alat.dart';
+import '../../service/crud_alat_service.dart';
+import 'dart:io'; // <--- tambahkan ini
 
 class AlatAdmin extends StatefulWidget {
   const AlatAdmin({super.key});
@@ -10,68 +13,32 @@ class AlatAdmin extends StatefulWidget {
 }
 
 class _AlatAdminState extends State<AlatAdmin> {
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   String selectedCategory = "";
 
-  final List<Map<String, String>> allTools = [
-    {
-      "title": "Multi Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/multimeter.jpg",
-      "status": "baik",
-      "category": "Ukur",
-    },
-    {
-      "title": "Volt Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/voltmtr.jpg",
-      "status": "dipinjam",
-      "category": "Ukur",
-    },
-    {
-      "title": "Ampere Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/amperemtr.jpg",
-      "status": "diperbaiki",
-      "category": "Ukur",
-    },
-    {
-      "title": "Power Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/power_meter.jpg",
-      "status": "baik",
-      "category": "Ukur",
-    },
-    {
-      "title": "Oscilloscope",
-      "stock": "10 pcs",
-      "image": "assets/images/Oscilloscope.jpg",
-      "status": "baik",
-      "category": "Komponen",
-    },
-    {
-      "title": "Test Pen",
-      "stock": "10 pcs",
-      "image": "assets/images/pen.jpg",
-      "status": "baik",
-      "category": "Perkakas",
-    },
-  ];
-
-  List<Map<String, String>> filteredTools = [];
+  List<Map<String, dynamic>> allTools = [];
+  List<Map<String, dynamic>> filteredTools = [];
 
   @override
   void initState() {
     super.initState();
-    filteredTools = allTools;
+    fetchTools();
   }
 
-  void _applyFilter() {
+  void fetchTools() async {
+    final data = await CrudAlatService.getAll();
+    setState(() {
+      allTools = data;
+      applyFilter();
+    });
+  }
+
+  void applyFilter() {
     setState(() {
       filteredTools = allTools.where((tool) {
         final matchSearch = tool["title"]!
             .toLowerCase()
-            .contains(_searchController.text.toLowerCase());
+            .contains(searchController.text.toLowerCase());
         final matchCategory = selectedCategory.isEmpty ||
             tool["category"] == selectedCategory;
         return matchSearch && matchCategory;
@@ -79,13 +46,13 @@ class _AlatAdminState extends State<AlatAdmin> {
     });
   }
 
-  void _searchTool(String query) => _applyFilter();
+  void searchTool(String query) => applyFilter();
 
-  void _selectCategory(String category) {
+  void selectCategory(String category) {
     setState(() {
       selectedCategory = selectedCategory == category ? "" : category;
     });
-    _applyFilter();
+    applyFilter();
   }
 
   @override
@@ -95,12 +62,13 @@ class _AlatAdminState extends State<AlatAdmin> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFE9B9A4),
         elevation: 0,
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Dashboard', style: TextStyle(color: Colors.black)),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
+
+      // ✨ Tambahkan Drawer
+      drawer: const DrawerAdmin(),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
         child: Column(
@@ -114,8 +82,8 @@ class _AlatAdminState extends State<AlatAdmin> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
-                controller: _searchController,
-                onChanged: _searchTool,
+                controller: searchController,
+                onChanged: searchTool,
                 decoration: const InputDecoration(
                   icon: Icon(Icons.search),
                   hintText: "Cari alat...",
@@ -134,22 +102,22 @@ class _AlatAdminState extends State<AlatAdmin> {
                   KategoriAlat(
                     text: "Keselamatan",
                     isActive: selectedCategory == "Keselamatan",
-                    onTap: () => _selectCategory("Keselamatan"),
+                    onTap: () => selectCategory("Keselamatan"),
                   ),
                   KategoriAlat(
                     text: "Ukur",
                     isActive: selectedCategory == "Ukur",
-                    onTap: () => _selectCategory("Ukur"),
+                    onTap: () => selectCategory("Ukur"),
                   ),
                   KategoriAlat(
                     text: "Komponen",
                     isActive: selectedCategory == "Komponen",
-                    onTap: () => _selectCategory("Komponen"),
+                    onTap: () => selectCategory("Komponen"),
                   ),
                   KategoriAlat(
                     text: "Perkakas",
                     isActive: selectedCategory == "Perkakas",
-                    onTap: () => _selectCategory("Perkakas"),
+                    onTap: () => selectCategory("Perkakas"),
                   ),
                 ],
               ),
@@ -167,10 +135,8 @@ class _AlatAdminState extends State<AlatAdmin> {
               children: filteredTools.map((tool) {
                 return toolCard(
                   context,
-                  tool["title"]!,
-                  tool["stock"]!,
-                  tool["image"]!,
-                  tool["status"]!,
+                  tool,
+                  onRefresh: fetchTools,
                 );
               }).toList(),
             ),
@@ -195,8 +161,10 @@ class _AlatAdminState extends State<AlatAdmin> {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) =>
-                      const CrudAlat(mode: AlatMode.tambah),
+                  builder: (_) => EditAlat(
+                    mode: AlatMode.tambah,
+                    onSuccess: fetchTools,
+                  ),
                 );
               },
               icon: const Icon(Icons.add, color: Colors.white),
@@ -211,14 +179,11 @@ class _AlatAdminState extends State<AlatAdmin> {
     );
   }
 
-  /// ================= CARD ALAT (DENGAN EDIT + DELETE)
   static Widget toolCard(
     BuildContext context,
-    String title,
-    String stock,
-    String imagePath,
-    String status,
-  ) {
+    Map<String, dynamic> tool, {
+    required Function onRefresh,
+  }) {
     return Stack(
       children: [
         Container(
@@ -230,30 +195,33 @@ class _AlatAdminState extends State<AlatAdmin> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // STATUS + EDIT
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      status,
+                      tool["status"],
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  /// ✏️ EDIT ICON
                   GestureDetector(
                     onTap: () {
                       showDialog(
                         context: context,
-                        builder: (_) => const CrudAlat(mode: AlatMode.edit),
+                        builder: (_) => EditAlat(
+                          mode: AlatMode.edit,
+                          alatData: tool,
+                          onSuccess: () => onRefresh(),
+                        ),
                       );
                     },
                     child: const Icon(Icons.edit, size: 18, color: Colors.white),
@@ -269,12 +237,17 @@ class _AlatAdminState extends State<AlatAdmin> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Image.asset(imagePath, fit: BoxFit.contain),
+                child: tool["image_path"] != null && tool["image_path"].isNotEmpty
+                    ? Image.file(
+                        File(tool["image_path"]),
+                        fit: BoxFit.contain,
+                      )
+                    : const Icon(Icons.image, size: 40, color: Colors.grey),
               ),
               const SizedBox(height: 12),
               Center(
                 child: Text(
-                  title,
+                  tool["title"],
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
@@ -285,7 +258,7 @@ class _AlatAdminState extends State<AlatAdmin> {
               const SizedBox(height: 4),
               Center(
                 child: Text(
-                  stock,
+                  "${tool["stock"]} pcs",
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
@@ -295,7 +268,7 @@ class _AlatAdminState extends State<AlatAdmin> {
             ],
           ),
         ),
-        /// 🗑️ DELETE ICON
+        // DELETE ICON
         Positioned(
           bottom: 8,
           right: 8,
@@ -303,7 +276,11 @@ class _AlatAdminState extends State<AlatAdmin> {
             onTap: () {
               showDialog(
                 context: context,
-                builder: (_) => const CrudAlat(mode: AlatMode.hapus),
+                builder: (_) => EditAlat(
+                  mode: AlatMode.hapus,
+                  alatData: tool,
+                  onSuccess: () => onRefresh(),
+                ),
               );
             },
             child: Container(

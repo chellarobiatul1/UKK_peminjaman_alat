@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../drawer/drawer_admin.dart';
-import 'package:peminjaman_alat/widget/admin/crud_pengguna.dart';
+import 'package:peminjaman_alat/widget/admin/edit_pengguna.dart';
 
 class PenggunaAdmin extends StatefulWidget {
   const PenggunaAdmin({super.key});
@@ -52,7 +52,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     }).toList();
 
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: const DrawerAdmin(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,

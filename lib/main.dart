@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'screens/auth/splash_page.dart';
+import 'package:peminjaman_alat/screens/auth/splash_page.dart';
+import 'package:peminjaman_alat/service/supabase_service.dart';
+import 'package:peminjaman_alat/screens/admin/alat_admin.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Supabase
+  await SupabaseService.initialize();
+
   runApp(const MyApp());
 }
 

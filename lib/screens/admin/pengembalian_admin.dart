@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
 import 'peminjaman_admin.dart';
-import 'package:peminjaman_alat/widget/admin/crud_pengembalian.dart';
+import 'package:peminjaman_alat/widget/admin/edit_pengembalian.dart';
 
 class PengembalianAdmin extends StatefulWidget {
   const PengembalianAdmin({super.key});
@@ -63,7 +63,7 @@ class _PengembalianAdmin extends State<PengembalianAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
+      drawer: DrawerAdmin(),
       body: Column(
         children: [
           // HEADER
