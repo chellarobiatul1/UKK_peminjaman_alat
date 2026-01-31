@@ -1,19 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/peminjam/box_peminjam.dart'; // pastikan path sesuai
+import 'package:peminjaman_alat/screens/peminjam/box_peminjam.dart';
+import 'package:peminjaman_alat/screens/peminjam/daftar_alat.dart';
+import 'package:peminjaman_alat/screens/peminjam/list_aktifitas.dart';
+import 'package:peminjaman_alat/screens/peminjam/profile_peminjam.dart';
 
 class BottomNav extends StatelessWidget {
   final int currentIndex;
-  final ValueChanged<int> onTap;
   final int boxCount;
-  final BuildContext parentContext; // tambahkan context supaya bisa navigasi
 
   const BottomNav({
     super.key,
     required this.currentIndex,
-    required this.onTap,
     this.boxCount = 0,
-    required this.parentContext,
   });
+
+  void _navigate(BuildContext context, int index) {
+    Widget page;
+
+    switch (index) {
+      case 0:
+        page = const DaftarAlat();
+        break;
+      case 1:
+        page = const BoxPeminjam();
+        break;
+      case 2:
+        page = ListAktifitas(
+          alatList: [
+            {"title": "Alat 1", "image": "assets/images/alat1.png", "count": 1},
+            {"title": "Alat 2", "image": "assets/images/alat2.png", "count": 2},
+          ],
+        );
+        break;
+      case 3:
+        page = const ProfilePeminjam();
+        break;
+      default:
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,17 +55,8 @@ class BottomNav extends StatelessWidget {
       showSelectedLabels: false,
       showUnselectedLabels: false,
       onTap: (index) {
-        // jika Box diklik
-        if (index == 1) {
-          Navigator.push(
-            parentContext,
-            MaterialPageRoute(
-              builder: (_) => const BoxPeminjam(),
-            ),
-          );
-        } else {
-          onTap(index);
-        }
+        if (index == currentIndex) return;
+        _navigate(context, index);
       },
       items: [
         const BottomNavigationBarItem(
@@ -57,10 +78,7 @@ class BottomNav extends StatelessWidget {
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       boxCount.toString(),
                       style: const TextStyle(

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/admin/alat_admin.dart';
-import 'package:peminjaman_alat/screens/admin/dashboard_admin.dart';
-import 'package:peminjaman_alat/screens/admin/pengembalian_admin.dart';
-import 'package:peminjaman_alat/screens/admin/pengguna_admin.dart';
-import 'package:peminjaman_alat/screens/admin/peminjaman_admin.dart';
 import 'package:peminjaman_alat/screens/auth/login_page.dart';
+import 'package:peminjaman_alat/screens/petugas/dashboard_petugas.dart';
+import 'package:peminjaman_alat/screens/petugas/persetujuan_page.dart';
+import 'package:peminjaman_alat/screens/petugas/cetak_laporan_page.dart';
+import 'package:peminjaman_alat/screens/petugas/monitoring_pengembalian.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class DrawerPetugas extends StatelessWidget {
+  const DrawerPetugas({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,15 +31,14 @@ class AppDrawer extends StatelessWidget {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.admin_panel_settings,
-                      color: Colors.black),
+                  child: Icon(Icons.engineering, color: Colors.black),
                 ),
                 SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Admin',
+                      'Petugas',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -48,7 +46,7 @@ class AppDrawer extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Manajemen Sistem',
+                      'Manajemen Alat',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.black54,
@@ -65,69 +63,13 @@ class AppDrawer extends StatelessWidget {
           // ================= MENU =================
           _drawerItem(
             context,
-            icon: Icons.person,
-            title: 'Pengguna',
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PenggunaAdmin(),
-                ),
-              );
-            },
-          ),
-
-          _drawerItem(
-            context,
-            icon: Icons.build,
-            title: 'Alat',
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AlatAdmin(),
-                ),
-              );
-            },
-          ),
-
-          _drawerItem(
-            context,
             icon: Icons.dashboard,
             title: 'Dashboard',
             onTap: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const DashboardAdmin(),
-                ),
-              );
-            },
-          ),
-
-          _drawerItem(
-            context,
-            icon: Icons.timelapse,
-            title: 'Peminjaman',
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PeminjamanAdmin(),
-                ),
-              );
-            },
-          ),
-
-          _drawerItem(
-            context,
-            icon: Icons.assignment_return,
-            title: 'Pengembalian',
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PengembalianAdmin(),
+                  builder: (_) => const DashboardPetugas(),
                 ),
               );
             },
@@ -136,12 +78,41 @@ class AppDrawer extends StatelessWidget {
           _drawerItem(
             context,
             icon: Icons.list_alt,
-            title: 'Log Aktivitas',
+            title: 'Persetujuan',
             onTap: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const DashboardAdmin(),
+                  builder: (_) => const PersetujuanPage(),
+                ),
+              );
+            },
+          ),
+
+          // ===== MENU BARU =====
+          _drawerItem(
+            context,
+            icon: Icons.assignment_return,
+            title: 'Monitoring Pengembalian',
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MonitoringPengembalian(),
+                ),
+              );
+            },
+          ),
+
+          _drawerItem(
+            context,
+            icon: Icons.print,
+            title: 'Cetak Laporan',
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CetakLaporanPage(),
                 ),
               );
             },
@@ -204,8 +175,7 @@ class AppDrawer extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
-          // 👇 tinggi dibuat lebih pendek
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -219,13 +189,12 @@ class AppDrawer extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFFF4A261), size: 22),
+              Icon(icon, color: const Color(0xFFF4A261)),
               const SizedBox(width: 12),
               Text(
                 title,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
                 ),
               ),
             ],

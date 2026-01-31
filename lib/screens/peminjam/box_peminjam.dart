@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/peminjam/ajukan_peminjaman.dart';
-
-void main() {
-  runApp(const BoxPeminjam());
-}
+import 'package:peminjaman_alat/screens/peminjam/detail_peminjaman.dart';
+import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
 
 class BoxPeminjam extends StatelessWidget {
   const BoxPeminjam({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: PeminjamanPage(),
-    );
+    return const PeminjamanPage();
   }
 }
 
@@ -30,64 +24,86 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
       "title": "Power Meter",
       "stock": 5,
       "count": 1,
-      "image": "assets/images/power_meter.png",
+      "image": "assets/images/power_meter.jpg",
     },
     {
       "title": "Test Pen",
       "stock": 2,
       "count": 1,
-      "image": "assets/images/test_pen.png",
+      "image": "assets/images/pen.jpg",
     },
     {
       "title": "Volt Meter",
       "stock": 4,
       "count": 1,
-      "image": "assets/images/volt_meter.png",
+      "image": "assets/images/voltmtr.jpg",
     },
   ];
 
   void _incrementCount(int index) {
     setState(() {
       if (alatList[index]["count"] < alatList[index]["stock"]) {
-        alatList[index]["count"] += 1;
+        alatList[index]["count"]++;
       }
     });
   }
 
   void _decrementCount(int index) {
     setState(() {
-      if (alatList[index]["count"] > 0) {
-        alatList[index]["count"] -= 1;
+      if (alatList[index]["count"] > 1) {
+        alatList[index]["count"]--;
       }
     });
   }
 
-  Future<bool?> _confirmDelete(int index) async {
-    return showDialog<bool>(
+  Future<void> _deleteItem(int index) async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Konfirmasi Hapus"),
-        content: Text("Apakah kamu yakin ingin menghapus ${alatList[index]['title']}?"),
+        content: Text(
+          "Apakah kamu yakin ingin menghapus ${alatList[index]['title']}?",
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Batal")),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Hapus", style: TextStyle(color: Colors.red))),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Hapus",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
         ],
       ),
     );
+
+    if (confirm == true) {
+      setState(() {
+        alatList.removeAt(index);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final int boxCount =
+        alatList.fold(0, (sum, item) => sum + (item['count'] as int));
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFFE8B7A2),
         elevation: 0,
-        leading: BackButton(color: Colors.black),
-        title: const Text('Peminjaman', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        leading: const BackButton(color: Colors.black),
+        title: const Text(
+          'Peminjaman',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -97,82 +113,80 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                 itemCount: alatList.length,
                 itemBuilder: (context, index) {
                   final alat = alatList[index];
-                  return Dismissible(
-                    key: Key(alat['title']),
-                    direction: DismissDirection.startToEnd,
-                    background: Container(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.only(left: 16),
-                      color: Colors.red,
-                      child: const Icon(Icons.delete, color: Colors.white),
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4C7AE),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    confirmDismiss: (_) async {
-                      final result = await _confirmDelete(index);
-                      if (result == true) {
-                        setState(() {
-                          alatList.removeAt(index);
-                        });
-                        return true;
-                      }
-                      return false;
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4C7AE),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          // Gambar alat
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.asset(
-                                alat['image'],
-                                fit: BoxFit.cover,
-                              ),
+                    child: Row(
+                      children: [
+                        // IMAGE
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              alat['image'],
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(alat['title'], style: const TextStyle(fontWeight: FontWeight.bold))),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () => _decrementCount(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                                  child: const Icon(Icons.remove, size: 16),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text("${alat['count']}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => _incrementCount(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                                  child: const Icon(Icons.add, size: 16),
-                                ),
-                              ),
-                            ],
+                        ),
+                        const SizedBox(width: 12),
+
+                        // TITLE
+                        Expanded(
+                          child: Text(
+                            alat['title'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+
+                        // ACTION
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: () => _decrementCount(index),
+                            ),
+                            Text(
+                              "${alat['count']}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () => _incrementCount(index),
+                            ),
+
+                            // 🗑 DELETE ICON
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              onPressed: () => _deleteItem(index),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   );
                 },
               ),
             ),
+
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -181,19 +195,35 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AjukanPeminjaman(alatList: List<Map<String, dynamic>>.from(alatList)),
+                      builder: (_) => AjukanPeminjaman(
+                        alatList:
+                            List<Map<String, dynamic>>.from(alatList),
+                      ),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEF6C3E),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                 ),
-                child: const Text('Ajukan Peminjaman', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Ajukan Peminjaman',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
         ),
+      ),
+
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        boxCount: boxCount,
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/admin/kategori_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
-import 'package:peminjaman_alat/screens/peminjam/box_peminjam.dart';
 
 class DaftarAlat extends StatefulWidget {
   const DaftarAlat({super.key});
@@ -12,8 +11,6 @@ class DaftarAlat extends StatefulWidget {
 
 class _DaftarAlatState extends State<DaftarAlat> {
   String selectedCategory = "Ukur";
-  int _selectedIndex = 0;
-
   TextEditingController searchController = TextEditingController();
 
   final List<Map<String, String>> allTools = [
@@ -62,48 +59,36 @@ class _DaftarAlatState extends State<DaftarAlat> {
   ];
 
   List<Map<String, String>> filteredTools = [];
-  int totalAdded = 0; // total klik + untuk badge di bottom nav
+  int totalAdded = 0; // badge box
 
   @override
   void initState() {
     super.initState();
-    filteredTools =
-        allTools.where((tool) => tool["category"] == selectedCategory).toList();
+    _filterTools("");
   }
 
   void _selectCategory(String category) {
     setState(() {
-      if (selectedCategory == category) {
-        selectedCategory = "";
-      } else {
-        selectedCategory = category;
-      }
+      selectedCategory =
+          selectedCategory == category ? "" : category;
       _filterTools(searchController.text);
     });
   }
 
   void _filterTools(String query) {
-    setState(() {
-      filteredTools = allTools.where((tool) {
-        final matchesCategory =
-            selectedCategory.isEmpty || tool["category"] == selectedCategory;
-        final matchesQuery = tool["title"]!
-            .toLowerCase()
-            .contains(query.toLowerCase());
-        return matchesCategory && matchesQuery;
-      }).toList();
-    });
+    filteredTools = allTools.where((tool) {
+      final matchesCategory =
+          selectedCategory.isEmpty || tool["category"] == selectedCategory;
+      final matchesQuery =
+          tool["title"]!.toLowerCase().contains(query.toLowerCase());
+      return matchesCategory && matchesQuery;
+    }).toList();
+    setState(() {});
   }
 
   void _incrementCounter() {
     setState(() {
-      totalAdded += 1; // setiap klik + tambah 1
-    });
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
+      totalAdded += 1;
     });
   }
 
@@ -111,19 +96,27 @@ class _DaftarAlatState extends State<DaftarAlat> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
+      // ================= APP BAR =================
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           "Listrik\nTool Loan",
-          style: TextStyle(color: Colors.black, fontSize: 20),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
+
+      // ================= BODY =================
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Kategori
+          // KATEGORI
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
@@ -158,25 +151,22 @@ class _DaftarAlatState extends State<DaftarAlat> {
 
           const SizedBox(height: 8),
 
-          // Search di tengah
+          // SEARCH
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(
-              child: SizedBox(
-                height: 40,
-                child: TextField(
-                  controller: searchController,
-                  onChanged: _filterTools,
-                  decoration: InputDecoration(
-                    hintText: "Search",
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+            child: SizedBox(
+              height: 40,
+              child: TextField(
+                controller: searchController,
+                onChanged: _filterTools,
+                decoration: InputDecoration(
+                  hintText: "Search",
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
@@ -185,7 +175,7 @@ class _DaftarAlatState extends State<DaftarAlat> {
 
           const SizedBox(height: 8),
 
-          // GRID ALAT
+          // GRID
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -195,7 +185,6 @@ class _DaftarAlatState extends State<DaftarAlat> {
                 mainAxisSpacing: 14,
                 childAspectRatio: 0.72,
                 children: filteredTools.map((tool) {
-                  final title = tool["title"]!;
                   return Stack(
                     children: [
                       Container(
@@ -225,7 +214,6 @@ class _DaftarAlatState extends State<DaftarAlat> {
                             const SizedBox(height: 12),
                             Container(
                               height: 90,
-                              width: double.infinity,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -239,15 +227,13 @@ class _DaftarAlatState extends State<DaftarAlat> {
                             const SizedBox(height: 12),
                             Center(
                               child: Text(
-                                title,
-                                textAlign: TextAlign.center,
+                                tool["title"]!,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Center(
                               child: Text(
                                 tool["stock"]!,
@@ -266,14 +252,13 @@ class _DaftarAlatState extends State<DaftarAlat> {
                         child: GestureDetector(
                           onTap: _incrementCounter,
                           child: Container(
+                            padding: const EdgeInsets.all(6),
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            padding: const EdgeInsets.all(6),
                             child: const Icon(
                               Icons.add,
-                              size: 20,
                               color: Color(0xFFF26A2E),
                             ),
                           ),
@@ -288,23 +273,11 @@ class _DaftarAlatState extends State<DaftarAlat> {
         ],
       ),
 
+      // ================= BOTTOM NAV =================
       bottomNavigationBar: BottomNav(
-  currentIndex: _selectedIndex,
-  onTap: (index) {
-    _onItemTapped(index);
-    if (index == 1) { // kalau klik Box
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PeminjamanPage(),
-        ),
-      );
-    }
-  },
-  boxCount: totalAdded,     // jumlah klik + di card
-  parentContext: context,   // wajib dikirim agar navigasi ke PeminjamanPage
-),
-
+        currentIndex: 0, // DaftarAlat
+        boxCount: totalAdded,
+      ),
     );
   }
 }
