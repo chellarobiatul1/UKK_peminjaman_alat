@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/widget/admin/edit_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
 import 'kategori_alat.dart';
-import '../../service/crud_alat_service.dart';
-import 'dart:io'; // <--- tambahkan ini
+import '../../service/alat_service.dart';
+import 'dart:io'; // kalau butuh, tapi sebenarnya ga dipakai di sini
 
 class AlatAdmin extends StatefulWidget {
   const AlatAdmin({super.key});
@@ -66,7 +66,6 @@ class _AlatAdminState extends State<AlatAdmin> {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
 
-      // ✨ Tambahkan Drawer
       drawer: const DrawerAdmin(),
 
       body: SingleChildScrollView(
@@ -182,8 +181,14 @@ class _AlatAdminState extends State<AlatAdmin> {
   static Widget toolCard(
     BuildContext context,
     Map<String, dynamic> tool, {
-    required Function onRefresh,
+    required VoidCallback onRefresh, // ubah jadi VoidCallback biar lebih clean
   }) {
+    // Tambah timestamp unik untuk bust cache
+    final String imageUrlWithCacheBuster = tool["image_path"] != null &&
+            tool["image_path"].toString().startsWith("http")
+        ? '${tool["image_path"]}?v=${DateTime.now().millisecondsSinceEpoch}'
+        : 'assets/images/default.jpg';
+
     return Stack(
       children: [
         Container(
@@ -220,7 +225,7 @@ class _AlatAdminState extends State<AlatAdmin> {
                         builder: (_) => EditAlat(
                           mode: AlatMode.edit,
                           alatData: tool,
-                          onSuccess: () => onRefresh(),
+                          onSuccess: onRefresh,
                         ),
                       );
                     },
@@ -237,13 +242,19 @@ class _AlatAdminState extends State<AlatAdmin> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-              child: tool["image_path"] != null && tool["image_path"].isNotEmpty
-    ? Image.network(
-        tool["image_path"],
-        fit: BoxFit.contain,
-      )
-    : const Icon(Icons.image, size: 40, color: Colors.grey),
-
+                child: tool["image_path"] != null &&
+                        tool["image_path"].toString().startsWith("http")
+                    ? Image.network(
+                        imageUrlWithCacheBuster,  // <-- ini yang penting!
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.broken_image, color: Colors.red);
+                        },
+                      )
+                    : Image.asset(
+                        "assets/images/default.jpg",
+                        fit: BoxFit.contain,
+                      ),
               ),
               const SizedBox(height: 12),
               Center(
@@ -280,7 +291,7 @@ class _AlatAdminState extends State<AlatAdmin> {
                 builder: (_) => EditAlat(
                   mode: AlatMode.hapus,
                   alatData: tool,
-                  onSuccess: () => onRefresh(),
+                  onSuccess: onRefresh,
                 ),
               );
             },
