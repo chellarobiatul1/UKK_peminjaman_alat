@@ -237,12 +237,13 @@ class _AlatAdminState extends State<AlatAdmin> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: tool["image_path"] != null && tool["image_path"].isNotEmpty
-                    ? Image.file(
-                        File(tool["image_path"]),
-                        fit: BoxFit.contain,
-                      )
-                    : const Icon(Icons.image, size: 40, color: Colors.grey),
+              child: tool["image_path"] != null && tool["image_path"].isNotEmpty
+    ? Image.network(
+        tool["image_path"],
+        fit: BoxFit.contain,
+      )
+    : const Icon(Icons.image, size: 40, color: Colors.grey),
+
               ),
               const SizedBox(height: 12),
               Center(

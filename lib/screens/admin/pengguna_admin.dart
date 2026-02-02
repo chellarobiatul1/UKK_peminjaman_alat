@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../drawer/drawer_admin.dart';
 import 'package:peminjaman_alat/widget/admin/edit_pengguna.dart';
+import 'package:peminjaman_alat/service/pengguna_service.dart';
 
 class PenggunaAdmin extends StatefulWidget {
   const PenggunaAdmin({super.key});
@@ -11,45 +12,35 @@ class PenggunaAdmin extends StatefulWidget {
 
 class _PenggunaAdminState extends State<PenggunaAdmin> {
   final TextEditingController searchController = TextEditingController();
+  final PenggunaService _service = PenggunaService();
 
-  final List<Map<String, dynamic>> users = [
-    {
-      "name": "Clarissa Kurnia Putri",
-      "email": "clarissa@gmail.com",
-      "id": "14062007",
-      "role": "peminjam",
-      "color": Colors.green,
-    },
-    {
-      "name": "Melati Tiara Permata D",
-      "email": "melati@gmail.com",
-      "id": "18012008",
-      "role": "admin",
-      "color": Colors.red,
-    },
-    {
-      "name": "Nur Zahra Fritiana Y",
-      "email": "nur@gmail.com",
-      "id": "27082006",
-      "role": "petugas",
-      "color": Colors.blueGrey,
-    },
-    {
-      "name": "Chella Robiatul A",
-      "email": "clarissa@gmail.com",
-      "id": "18032008",
-      "role": "peminjam",
-      "color": Colors.green,
-    },
-  ];
+  List<Map<String, dynamic>> users = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
+
+  Future<void> fetchUsers() async {
+    final data = await _service.getUsers();
+    setState(() {
+      users = data;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final filteredUsers = users.where((user) {
-      final q = searchController.text.toLowerCase();
-      return user["name"].toLowerCase().contains(q) ||
-          user["role"].toLowerCase().contains(q);
-    }).toList();
+  final q = searchController.text.toLowerCase();
+
+  final nama = (user["nama"] ?? "").toString().toLowerCase();
+  final level = (user["level"] ?? "").toString().toLowerCase();
+
+  return nama.contains(q) || level.contains(q);
+}).toList();
 
     return Scaffold(
       drawer: const DrawerAdmin(),
@@ -67,7 +58,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// 🔍 SEARCH (DI TENGAH & REALTIME)
+            // 🔍 SEARCH BAR
             Container(
               height: 40,
               margin: const EdgeInsets.only(bottom: 14),
@@ -95,23 +86,28 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
               ),
             ),
 
-            /// 📋 LIST USER (UI ASLI BALIK)
-            Expanded(
-              child: ListView(
-                children: filteredUsers.map((u) {
-                  return userCard(
-                    context: context,
-                    name: u["name"],
-                    email: u["email"],
-                    id: u["id"],
-                    role: u["role"],
-                    color: u["color"],
-                  );
-                }).toList(),
-              ),
-            ),
+            // 📋 LIST USER
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Expanded(
+                    child: ListView(
+                      children: filteredUsers.map((u) {
+                        return userCard(
+                          userData: u,
+                         name: (u["nama"] ?? "").toString(),
+                          id: u["id"].toString(),
+                          level: u["level"],
+                          color: u["level"] == "admin"
+                              ? Colors.red
+                              : u["level"] == "petugas"
+                                  ? Colors.blueGrey
+                                  : Colors.green,
+                        );
+                      }).toList(),
+                    ),
+                  ),
 
-            /// ➕ TAMBAH
+            // ➕ TAMBAH PENGGUNA
             SizedBox(
               width: double.infinity,
               height: 45,
@@ -125,8 +121,11 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const CrudPengguna(
+                    builder: (context) => EditPengguna(
                       mode: PenggunaMode.tambah,
+                      onSuccess: () {
+                        fetchUsers();
+                      },
                     ),
                   );
                 },
@@ -142,13 +141,12 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     );
   }
 
-  /// 👉 USER CARD (PERSIS UI KAMU)
+  // 👉 USER CARD FUNCTION
   Widget userCard({
-    required BuildContext context,
+    required Map<String, dynamic> userData,
     required String name,
-    required String email,
     required String id,
-    required String role,
+    required String level,
     required Color color,
   }) {
     return Container(
@@ -164,31 +162,36 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
             radius: 26,
             backgroundColor: color,
             child: Text(
-              name[0],
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+  name.isNotEmpty ? name[0].toUpperCase() : "?",
+  style: const TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  ),
+),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
-                Text(email,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade700)),
-                Text(id,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade700)),
-              ],
-            ),
-          ),
+Expanded(
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        name.isNotEmpty ? name : '-',
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+      ),
+      Text(
+        id.isNotEmpty ? id : '-',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey.shade700,
+        ),
+      ),
+    ],
+  ),
+),
           Column(
             children: [
               Container(
@@ -199,7 +202,7 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  role,
+                  level,
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                 ),
               ),
@@ -209,23 +212,49 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
                   GestureDetector(
                     onTap: () {
                       showDialog(
-                        context: context,
-                        builder: (context) => const CrudPengguna(
+                        context
+                                            : context,
+                        builder: (context) => EditPengguna(
                           mode: PenggunaMode.edit,
+                          penggunaData: userData,
+                          onSuccess: () {
+                            fetchUsers();
+                          },
                         ),
                       );
                     },
-                    child: const Icon(Icons.edit, size: 18),
+                    child: const Icon(Icons.edit, size: 18, color: Colors.blue),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () {
-                      showDialog(
+                    onTap: () async {
+                      // Konfirmasi sebelum menghapus
+                      final confirm = await showDialog<bool>(
                         context: context,
-                        builder: (context) => const CrudPengguna(
-                          mode: PenggunaMode.hapus,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Hapus Pengguna"),
+                          content: Text(
+                              "Apakah Anda yakin ingin menghapus pengguna $name?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text("Batal"),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text(
+                                "Hapus",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                       );
+
+                      if (confirm ?? false) {
+                       await _service.hapusPengguna(int.parse(id));
+                        fetchUsers();
+                      }
                     },
                     child:
                         const Icon(Icons.delete, size: 18, color: Colors.red),

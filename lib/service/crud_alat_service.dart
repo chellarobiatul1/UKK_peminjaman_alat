@@ -1,23 +1,24 @@
+import 'dart:io';
 import 'supabase_service.dart';
+import 'supabase_storage_service.dart';
 
 class CrudAlatService {
-  static final client = SupabaseService.client;
-
   static Future<List<Map<String, dynamic>>> getAll() async {
-    final res = await client
+    final res = await SupabaseService.client
         .from('alat')
         .select('id, nama_alat, jumlah_total, kondisi, kategori, gambar');
 
-    return (res as List<dynamic>).map((e) {
-      return {
-        'id': e['id'],
-        'title': e['nama_alat'],
-        'stock': e['jumlah_total'],
-        'status': e['kondisi'],
-        'category': e['kategori'].toString(),
-        'image_path': e['gambar'] ?? 'assets/images/default.jpg',
-      };
-    }).toList();
+    final data = res as List;
+
+    return data.map((e) => {
+          'id': e['id'],
+          'title': e['nama_alat'],
+          'stock': e['jumlah_total'],
+          'status': e['kondisi'],
+          'category': e['kategori'].toString(),
+          'image_path':
+              e['gambar'] ?? 'assets/images/default.jpg',
+        }).toList();
   }
 
   static Future<void> create({
@@ -25,14 +26,20 @@ class CrudAlatService {
     required int jumlah,
     required String kondisi,
     required int kategori,
-    required String gambar,
+    File? gambar,
   }) async {
-    await client.from('alat').insert({
+    String? imageUrl;
+
+    if (gambar != null) {
+      imageUrl = await SupabaseStorageService.uploadImage(gambar);
+    }
+
+    await SupabaseService.client.from('alat').insert({
       'nama_alat': nama.trim(),
       'jumlah_total': jumlah,
       'kondisi': kondisi.trim(),
       'kategori': kategori,
-      'gambar': gambar.trim().isNotEmpty ? gambar.trim() : null,
+      'gambar': imageUrl,
     });
   }
 
@@ -42,18 +49,24 @@ class CrudAlatService {
     required int jumlah,
     required String kondisi,
     required int kategori,
-    required String gambar,
+    File? gambar,
   }) async {
-    await client.from('alat').update({
+    String? imageUrl;
+
+    if (gambar != null) {
+      imageUrl = await SupabaseStorageService.uploadImage(gambar);
+    }
+
+    await SupabaseService.client.from('alat').update({
       'nama_alat': nama.trim(),
       'jumlah_total': jumlah,
       'kondisi': kondisi.trim(),
       'kategori': kategori,
-      'gambar': gambar.trim().isNotEmpty ? gambar.trim() : null,
+      if (imageUrl != null) 'gambar': imageUrl,
     }).eq('id', id);
   }
 
   static Future<void> delete(int id) async {
-    await client.from('alat').delete().eq('id', id);
+    await SupabaseService.client.from('alat').delete().eq('id', id);
   }
 }

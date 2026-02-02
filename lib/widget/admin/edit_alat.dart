@@ -39,51 +39,54 @@ class _EditAlatState extends State<EditAlat> {
   bool get isHapus => widget.mode == AlatMode.hapus;
 
   Future<void> submit() async {
-    try {
-      if (isTambah) {
-        await CrudAlatService.create(
-          nama: namaController.text,
-          jumlah: int.parse(jumlahController.text),
-          kondisi: kondisiController.text,
-          kategori: int.parse(kategoriController.text),
-          gambar: selectedFile?.path ?? '',
-        );
-      } else if (isEdit) {
-        await CrudAlatService.update(
-          id: widget.alatData!['id'],
-          nama: namaController.text,
-          jumlah: int.parse(jumlahController.text),
-          kondisi: kondisiController.text,
-          kategori: int.parse(kategoriController.text),
-          gambar: selectedFile?.path ?? '',
-        );
-      } else if (isHapus) {
-        await CrudAlatService.delete(widget.alatData!['id']);
-      }
+  try {
+    final jumlah = int.tryParse(jumlahController.text) ?? 0;
+    final kategori = int.tryParse(kategoriController.text) ?? 0;
 
-      if (widget.onSuccess != null) widget.onSuccess!();
-
-      if (!mounted) return;
-      Navigator.pop(context);
-
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: PemberitahuanSukses(
-            message: isTambah
-                ? "Berhasil menambahkan alat"
-                : isEdit
-                    ? "Berhasil menyimpan perubahan"
-                    : "Berhasil menghapus alat",
-          ),
-        ),
+    if (isTambah) {
+      await CrudAlatService.create(
+        nama: namaController.text,
+        jumlah: jumlah,
+        kondisi: kondisiController.text,
+        kategori: kategori,
+        gambar: selectedFile,
       );
-    } catch (e) {
-      print("Error: $e");
+    } else if (isEdit) {
+      await CrudAlatService.update(
+        id: widget.alatData!['id'],
+        nama: namaController.text,
+        jumlah: jumlah,
+        kondisi: kondisiController.text,
+        kategori: kategori,
+        gambar: selectedFile,
+      );
+    } else if (isHapus) {
+      await CrudAlatService.delete(widget.alatData!['id']);
     }
+
+    widget.onSuccess?.call();
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: PemberitahuanSukses(
+          message: isTambah
+              ? "Berhasil menambahkan alat"
+              : isEdit
+                  ? "Berhasil menyimpan perubahan"
+                  : "Berhasil menghapus alat",
+        ),
+      ),
+    );
+  } catch (e) {
+    print('Submit error: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {
