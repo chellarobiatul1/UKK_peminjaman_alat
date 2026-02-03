@@ -24,23 +24,36 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
   }
 
   Future<void> fetchUsers() async {
-    final data = await _service.getUsers();
-    setState(() {
-      users = data;
-      isLoading = false;
-    });
+    try {
+      final data = await _service.getUsers();
+      setState(() {
+        users = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching users: $e');
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final filteredUsers = users.where((user) {
-  final q = searchController.text.toLowerCase();
-
-  final nama = (user["nama"] ?? "").toString().toLowerCase();
-  final level = (user["level"] ?? "").toString().toLowerCase();
-
-  return nama.contains(q) || level.contains(q);
-}).toList();
+      final q = searchController.text.toLowerCase();
+      final nama = (user["nama"] ?? "").toString().toLowerCase();
+      final level = (user["level"] ?? "").toString().toLowerCase();
+      return nama.contains(q) || level.contains(q);
+    }).toList();
 
     return Scaffold(
       drawer: const DrawerAdmin(),
@@ -88,24 +101,33 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
 
             // 📋 LIST USER
             isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: ListView(
-                      children: filteredUsers.map((u) {
-                        return userCard(
-                          userData: u,
-                         name: (u["nama"] ?? "").toString(),
-                          id: u["id"].toString(),
-                          level: u["level"],
-                          color: u["level"] == "admin"
-                              ? Colors.red
-                              : u["level"] == "petugas"
-                                  ? Colors.blueGrey
-                                  : Colors.green,
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                ? const Expanded(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : filteredUsers.isEmpty
+                    ? const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Tidak ada data pengguna',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    : Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final u = filteredUsers[index];
+                            return userCard(
+                              userData: u,
+                              name: (u["nama"] ?? "").toString(),
+                              id: (u["id"] ?? 0).toString(),
+                              level: (u["level"] ?? "user").toString(),
+                              color: _getLevelColor(u["level"]),
+                            );
+                          },
+                        ),
+                      ),
 
             // ➕ TAMBAH PENGGUNA
             SizedBox(
@@ -141,6 +163,21 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
     );
   }
 
+  // 🎨 Get color based on level
+  Color _getLevelColor(dynamic level) {
+    if (level == null) return Colors.green;
+    
+    final levelStr = level.toString().toLowerCase();
+    switch (levelStr) {
+      case 'admin':
+        return Colors.red;
+      case 'petugas':
+        return Colors.blueGrey;
+      default:
+        return Colors.green;
+    }
+  }
+
   // 👉 USER CARD FUNCTION
   Widget userCard({
     required Map<String, dynamic> userData,
@@ -162,47 +199,46 @@ class _PenggunaAdminState extends State<PenggunaAdmin> {
             radius: 26,
             backgroundColor: color,
             child: Text(
-  name.isNotEmpty ? name[0].toUpperCase() : "?",
-  style: const TextStyle(
-    fontSize: 22,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  ),
-),
+              name.isNotEmpty ? name[0].toUpperCase() : "?",
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
-Expanded(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        name.isNotEmpty ? name : '-',
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
-        ),
-      ),
-      Text(
-        id.isNotEmpty ? id : '-',
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey.shade700,
-        ),
-      ),
-    ],
-  ),
-),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name.isNotEmpty ? name : '-',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  id.isNotEmpty ? 'ID: $id' : '-',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Column(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: color,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  level,
+                  level.isNotEmpty ? level : 'user',
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                 ),
               ),
@@ -212,8 +248,7 @@ Expanded(
                   GestureDetector(
                     onTap: () {
                       showDialog(
-                        context
-                                            : context,
+                        context: context,
                         builder: (context) => EditPengguna(
                           mode: PenggunaMode.edit,
                           penggunaData: userData,
@@ -227,37 +262,19 @@ Expanded(
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () async {
-                      // Konfirmasi sebelum menghapus
-                      final confirm = await showDialog<bool>(
+                    onTap: () {
+                      showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Hapus Pengguna"),
-                          content: Text(
-                              "Apakah Anda yakin ingin menghapus pengguna $name?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text("Batal"),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text(
-                                "Hapus",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
+                        builder: (context) => EditPengguna(
+                          mode: PenggunaMode.hapus,
+                          penggunaData: userData,
+                          onSuccess: () {
+                            fetchUsers();
+                          },
                         ),
                       );
-
-                      if (confirm ?? false) {
-                       await _service.hapusPengguna(int.parse(id));
-                        fetchUsers();
-                      }
                     },
-                    child:
-                        const Icon(Icons.delete, size: 18, color: Colors.red),
+                    child: const Icon(Icons.delete, size: 18, color: Colors.red),
                   ),
                 ],
               ),
@@ -266,5 +283,11 @@ Expanded(
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 }
