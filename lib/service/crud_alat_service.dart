@@ -1,6 +1,10 @@
 import 'dart:io';
 import 'supabase_service.dart';
 import 'supabase_storage_service.dart';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+
+
 
 class CrudAlatService {
   static Future<List<Map<String, dynamic>>> getAll() async {
@@ -22,26 +26,31 @@ class CrudAlatService {
   }
 
   static Future<void> create({
-    required String nama,
-    required int jumlah,
-    required String kondisi,
-    required int kategori,
-    File? gambar,
-  }) async {
-    String? imageUrl;
+  required String nama,
+  required int jumlah,
+  required String kondisi,
+  required int kategori,
+  Uint8List? imageBytes, // web
+  String? fileName,      // web
+  File? imageFile,       // mobile/desktop
+}) async {
+  String? imageUrl;
 
-    if (gambar != null) {
-      imageUrl = await SupabaseStorageService.uploadImage(gambar);
-    }
-
-    await SupabaseService.client.from('alat').insert({
-      'nama_alat': nama.trim(),
-      'jumlah_total': jumlah,
-      'kondisi': kondisi.trim(),
-      'kategori': kategori,
-      'gambar': imageUrl,
-    });
+  if (kIsWeb && imageBytes != null && fileName != null) {
+    imageUrl = await SupabaseStorageService.uploadImageWeb(imageBytes, fileName);
+  } else if (!kIsWeb && imageFile != null) {
+    imageUrl = await SupabaseStorageService.uploadImage(imageFile);
   }
+
+  await SupabaseService.client.from('alat').insert({
+    'nama_alat': nama.trim(),
+    'jumlah_total': jumlah,
+    'kondisi': kondisi.trim(),
+    'kategori': kategori,
+    if (imageUrl != null) 'gambar': imageUrl,
+  });
+}
+
 
   static Future<void> update({
     required int id,
@@ -49,22 +58,31 @@ class CrudAlatService {
     required int jumlah,
     required String kondisi,
     required int kategori,
-    File? gambar,
+    Uint8List? imageBytes, // untuk web
+    String? fileName,      // nama file untuk web
+    File? imageFile,       // untuk mobile/desktop
   }) async {
     String? imageUrl;
 
-    if (gambar != null) {
-      imageUrl = await SupabaseStorageService.uploadImage(gambar);
-    }
+    try {
+      if (kIsWeb && imageBytes != null && fileName != null) {
+        imageUrl = await SupabaseStorageService.uploadImageWeb(imageBytes, fileName);
+      } else if (!kIsWeb && imageFile != null) {
+        imageUrl = await SupabaseStorageService.uploadImage(imageFile);
+      }
 
-    await SupabaseService.client.from('alat').update({
-      'nama_alat': nama.trim(),
-      'jumlah_total': jumlah,
-      'kondisi': kondisi.trim(),
-      'kategori': kategori,
-      if (imageUrl != null) 'gambar': imageUrl,
-    }).eq('id', id);
+      await SupabaseService.client.from('alat').update({
+        'nama_alat': nama.trim(),
+        'jumlah_total': jumlah,
+        'kondisi': kondisi.trim(),
+        'kategori': kategori,
+        if (imageUrl != null) 'gambar': imageUrl,
+      }).eq('id', id);
+    } catch (e) {
+      print('Update error: $e');
+    }
   }
+
 
   static Future<void> delete(int id) async {
     await SupabaseService.client.from('alat').delete().eq('id', id);

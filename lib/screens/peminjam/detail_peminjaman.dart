@@ -244,7 +244,15 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ConfirmationPage(),
+                       builder: (_) => ConfirmationPage(
+
+  nama: namaController.text,
+  user: userController.text,
+  tanggalPinjam: tanggalPinjamController.text,
+  tanggalKembali: tanggalKembaliController.text,
+  alatList: widget.alatList,
+)
+
                       ),
                     );
                   },

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/widget/admin/edit_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
 import 'kategori_alat.dart';
-import '../../service/alat_service.dart';
-import 'dart:io'; // kalau butuh, tapi sebenarnya ga dipakai di sini
+import 'package:peminjaman_alat/service/alat_service.dart';
 
 class AlatAdmin extends StatefulWidget {
   const AlatAdmin({super.key});
@@ -58,43 +57,59 @@ class _AlatAdminState extends State<AlatAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(238, 238, 238, 1),
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFE9B9A4),
-        elevation: 0,
-        title: const Text('Dashboard', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: const Text(
+          'Dashboard Alat',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
-
       drawer: const DrawerAdmin(),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 12),
+
             /// 🔍 SEARCH
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: TextField(
                 controller: searchController,
                 onChanged: searchTool,
                 decoration: const InputDecoration(
-                  icon: Icon(Icons.search),
+                  icon: Icon(Icons.search, color: Colors.grey),
                   hintText: "Cari alat...",
                   border: InputBorder.none,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 16),
 
             /// 🧩 KATEGORI
             SizedBox(
-              height: 40,
+              height: 45,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
@@ -121,69 +136,54 @@ class _AlatAdminState extends State<AlatAdmin> {
                 ],
               ),
             ),
+
             const SizedBox(height: 16),
 
             /// 🧱 GRID ALAT
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 0.72,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: filteredTools.map((tool) {
-                return toolCard(
-                  context,
-                  tool,
-                  onRefresh: fetchTools,
-                );
-              }).toList(),
+            Expanded(
+              child: GridView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: filteredTools.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
+                ),
+                itemBuilder: (context, index) {
+                  final tool = filteredTools[index];
+                  return toolCard(context, tool, onRefresh: fetchTools);
+                },
+              ),
             ),
           ],
         ),
       ),
 
       /// ➕ TAMBAH ALAT
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF26A2E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => EditAlat(
-                    mode: AlatMode.tambah,
-                    onSuccess: fetchTools,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text(
-                "Tambah Alat",
-                style: TextStyle(color: Colors.white),
-              ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFFF26A2E),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (_) => EditAlat(
+              mode: AlatMode.tambah,
+              onSuccess: fetchTools,
             ),
-          ),
-        ),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text("Tambah Alat"),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   static Widget toolCard(
     BuildContext context,
     Map<String, dynamic> tool, {
-    required VoidCallback onRefresh, // ubah jadi VoidCallback biar lebih clean
+    required VoidCallback onRefresh,
   }) {
-    // Tambah timestamp unik untuk bust cache
     final String imageUrlWithCacheBuster = tool["image_path"] != null &&
             tool["image_path"].toString().startsWith("http")
         ? '${tool["image_path"]}?v=${DateTime.now().millisecondsSinceEpoch}'
@@ -193,115 +193,117 @@ class _AlatAdminState extends State<AlatAdmin> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF26A2E),
-            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           padding: const EdgeInsets.all(12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // STATUS + EDIT
+              /// IMAGE
+              Container(
+                height: 90,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Image.network(
+                  imageUrlWithCacheBuster,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, color: Colors.red, size: 40),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              /// TITLE
+              Text(
+                tool["title"],
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              /// STOCK
+              Text(
+                "${tool["stock"]} pcs",
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// STATUS + ACTION
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFFF26A2E).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       tool["status"],
                       style: const TextStyle(
                         fontSize: 12,
+                        color: Color(0xFFF26A2E),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => EditAlat(
-                          mode: AlatMode.edit,
-                          alatData: tool,
-                          onSuccess: onRefresh,
-                        ),
-                      );
-                    },
-                    child: const Icon(Icons.edit, size: 18, color: Colors.white),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                height: 90,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: tool["image_path"] != null &&
-                        tool["image_path"].toString().startsWith("http")
-                    ? Image.network(
-                        imageUrlWithCacheBuster,  // <-- ini yang penting!
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.broken_image, color: Colors.red);
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => EditAlat(
+                              mode: AlatMode.edit,
+                              alatData: tool,
+                              onSuccess: onRefresh,
+                            ),
+                          );
                         },
-                      )
-                    : Image.asset(
-                        "assets/images/default.jpg",
-                        fit: BoxFit.contain,
+                        child: const Icon(Icons.edit,
+                            size: 18, color: Color(0xFFF26A2E)),
                       ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  tool["title"],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Center(
-                child: Text(
-                  "${tool["stock"]} pcs",
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => EditAlat(
+                              mode: AlatMode.hapus,
+                              alatData: tool,
+                              onSuccess: onRefresh,
+                            ),
+                          );
+                        },
+                        child: const Icon(Icons.delete, size: 18, color: Colors.red),
+                      ),
+                    ],
+                  )
+                ],
+              )
             ],
-          ),
-        ),
-        // DELETE ICON
-        Positioned(
-          bottom: 8,
-          right: 8,
-          child: GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (_) => EditAlat(
-                  mode: AlatMode.hapus,
-                  alatData: tool,
-                  onSuccess: onRefresh,
-                ),
-              );
-            },
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.delete, color: Colors.red, size: 20),
-            ),
           ),
         ),
       ],

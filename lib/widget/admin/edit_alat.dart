@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import '../../service/alat_service.dart'; // sesuaikan path
-import 'pemberitahuan_sukses.dart';
-import 'package:image_picker/image_picker.dart';          // untuk pick gambar
-import 'dart:typed_data';                                 // untuk Uint8List
-import 'package:flutter/foundation.dart' show kIsWeb;    // untuk cek platform web
-import 'package:flutter/foundation.dart' show debugPrint; // optional, kalau mau debug
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../service/alat_service.dart';
 
 enum AlatMode { tambah, edit, hapus }
 
@@ -31,43 +25,48 @@ class EditAlat extends StatefulWidget {
 class _EditAlatState extends State<EditAlat> {
   Uint8List? selectedImageBytes;
   String? selectedFileName;
-  String? existingImagePath; // untuk edit (path lama di storage)
+
+  // 🔑 penting: URL untuk UI, PATH untuk storage
+  String? existingImageUrl;
+  String? existingImageStoragePath;
 
   late TextEditingController namaController;
   late TextEditingController kategoriController;
   late TextEditingController jumlahController;
   late TextEditingController kondisiController;
 
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
-    namaController = TextEditingController(text: widget.alatData?['title'] ?? '');
-    kategoriController = TextEditingController(text: widget.alatData?['category'] ?? '');
-    jumlahController = TextEditingController(text: widget.alatData?['stock']?.toString() ?? '');
-    kondisiController = TextEditingController(text: widget.alatData?['status'] ?? '');
+
+    namaController =
+        TextEditingController(text: widget.alatData?['title'] ?? '');
+    kategoriController =
+        TextEditingController(text: widget.alatData?['category'] ?? '');
+    jumlahController = TextEditingController(
+        text: widget.alatData?['stock']?.toString() ?? '');
+    kondisiController =
+        TextEditingController(text: widget.alatData?['status'] ?? '');
 
     if (widget.mode == AlatMode.edit) {
-      existingImagePath = widget.alatData?['image_path'];
-      // kalau mau tampilkan preview gambar lama, bisa pakai NetworkImage
+      existingImageUrl = widget.alatData?['image_path'];
+      existingImageStoragePath = widget.alatData?['image_storage'];
     }
   }
 
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image == null) return;
+    final XFile? image =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
 
-      final bytes = await image.readAsBytes();
+    final bytes = await image.readAsBytes();
 
-      setState(() {
-        selectedImageBytes = bytes;
-        selectedFileName = image.name;
-      });
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-    }
+    setState(() {
+      selectedImageBytes = bytes;
+      selectedFileName = image.name;
+    });
   }
 
   Future<void> submit() async {
@@ -77,53 +76,36 @@ class _EditAlatState extends State<EditAlat> {
 
       if (widget.mode == AlatMode.tambah) {
         await CrudAlatService.create(
-  nama: namaController.text,
-  jumlah: jumlah,
-  kondisi: kondisiController.text,
-  kategori: kategori,
-  imageBytes: selectedImageBytes,     // <-- Uint8List?
-  fileName: selectedFileName,          // <-- String?
-);
+          nama: namaController.text,
+          jumlah: jumlah,
+          kondisi: kondisiController.text,
+          kategori: kategori,
+          imageBytes: selectedImageBytes,
+          fileName: selectedFileName,
+        );
       } else if (widget.mode == AlatMode.edit) {
         await CrudAlatService.update(
-  id: widget.alatData!['id'],
-  nama: namaController.text,
-  jumlah: jumlah,
-  kondisi: kondisiController.text,
-  kategori: kategori,
-  imageBytes: selectedImageBytes,
-  fileName: selectedFileName,
-  oldImagePath: existingImagePath,     // path lama dari storage
-);
+          id: widget.alatData!['id'],
+          nama: namaController.text,
+          jumlah: jumlah,
+          kondisi: kondisiController.text,
+          kategori: kategori,
+          imageBytes: selectedImageBytes,
+          fileName: selectedFileName,
+          oldImagePath: existingImageStoragePath,
+        );
       } else if (widget.mode == AlatMode.hapus) {
         await CrudAlatService.delete(
           widget.alatData!['id'],
-          imagePath: existingImagePath,
+          imagePath: existingImageStoragePath,
         );
       }
 
       widget.onSuccess?.call();
-
       if (!mounted) return;
       Navigator.pop(context);
-
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: PemberitahuanSukses(
-            message: widget.mode == AlatMode.tambah
-                ? "Berhasil menambahkan alat"
-                : widget.mode == AlatMode.edit
-                    ? "Berhasil menyimpan perubahan"
-                    : "Berhasil menghapus alat",
-          ),
-        ),
-      );
     } catch (e) {
       debugPrint('Submit error: $e');
-      // Optional: tampilkan error ke user
     }
   }
 
@@ -150,23 +132,26 @@ class _EditAlatState extends State<EditAlat> {
                       borderRadius: BorderRadius.circular(15),
                       child: Image.memory(
                         selectedImageBytes!,
-                        fit: BoxFit.cover,
                         width: 70,
                         height: 70,
+                        fit: BoxFit.cover,
                       ),
                     )
-                  : (widget.mode == AlatMode.edit && existingImagePath != null)
+                  : (widget.mode == AlatMode.edit &&
+                          existingImageUrl != null)
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: Image.network(
-  Supabase.instance.client.storage.from('alat').getPublicUrl(existingImagePath!),
-  fit: BoxFit.cover,
-  width: 70,
-  height: 70,
-  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-),
+                            existingImageUrl!,
+                            width: 70,
+                            height: 70,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image),
+                          ),
                         )
-                      : const Icon(Icons.image, color: Colors.white, size: 70),
+                      : const Icon(Icons.image,
+                          color: Colors.white, size: 70),
             ),
             const SizedBox(height: 12),
             inputField("Nama Alat", controller: namaController),
@@ -185,12 +170,9 @@ class _EditAlatState extends State<EditAlat> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                       foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Colors.black),
-                      ),
                     ),
-                    child: const Text("Batal", style: TextStyle(fontSize: 12)),
+                    child: const Text("Batal",
+                        style: TextStyle(fontSize: 12)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -198,12 +180,10 @@ class _EditAlatState extends State<EditAlat> {
                   child: ElevatedButton(
                     onPressed: submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.mode == AlatMode.hapus ? Colors.red : Colors.black,
+                      backgroundColor: widget.mode == AlatMode.hapus
+                          ? Colors.red
+                          : Colors.black,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Colors.black),
-                      ),
                     ),
                     child: Text(
                       widget.mode == AlatMode.tambah
@@ -234,16 +214,10 @@ class _EditAlatState extends State<EditAlat> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(fontSize: 11),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Colors.black),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Colors.black),
           ),
         ),
       ),

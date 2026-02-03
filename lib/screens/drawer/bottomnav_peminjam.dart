@@ -26,10 +26,6 @@ class BottomNav extends StatelessWidget {
         break;
       case 2:
         page = ListAktifitas(
-          alatList: [
-            {"title": "Alat 1", "image": "assets/images/alat1.png", "count": 1},
-            {"title": "Alat 2", "image": "assets/images/alat2.png", "count": 2},
-          ],
         );
         break;
       case 3:

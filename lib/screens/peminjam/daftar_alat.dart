@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/admin/kategori_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
+import 'package:peminjaman_alat/service/crud_alat_service.dart';
+import 'package:peminjaman_alat/service/keranjang_service.dart';
+
 
 class DaftarAlat extends StatefulWidget {
   const DaftarAlat({super.key});
@@ -13,84 +16,71 @@ class _DaftarAlatState extends State<DaftarAlat> {
   String selectedCategory = "Ukur";
   TextEditingController searchController = TextEditingController();
 
-  final List<Map<String, String>> allTools = [
-    {
-      "title": "Multi Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/multimeter.jpg",
-      "status": "baik",
-      "category": "Ukur",
-    },
-    {
-      "title": "Volt Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/voltmtr.jpg",
-      "status": "dipinjam",
-      "category": "Ukur",
-    },
-    {
-      "title": "Ampere Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/amperemtr.jpg",
-      "status": "diperbaiki",
-      "category": "Ukur",
-    },
-    {
-      "title": "Power Meter",
-      "stock": "10 pcs",
-      "image": "assets/images/power_meter.jpg",
-      "status": "baik",
-      "category": "Ukur",
-    },
-    {
-      "title": "Oscilloscope",
-      "stock": "10 pcs",
-      "image": "assets/images/Oscilloscope.jpg",
-      "status": "baik",
-      "category": "Komponen",
-    },
-    {
-      "title": "Test Pen",
-      "stock": "10 pcs",
-      "image": "assets/images/pen.jpg",
-      "status": "baik",
-      "category": "Perkakas",
-    },
-  ];
-
-  List<Map<String, String>> filteredTools = [];
-  int totalAdded = 0; // badge box
+  List<Map<String, dynamic>> allTools = [];
+  List<Map<String, dynamic>> filteredTools = [];
+  bool isLoading = true;
+  int totalAdded = 0;
 
   @override
   void initState() {
     super.initState();
-    _filterTools("");
+    loadTools();
+  }
+
+  Future<void> loadTools() async {
+    try {
+      final data = await CrudAlatService.getAll();
+      setState(() {
+        allTools = data;
+        filteredTools = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Load alat error: $e');
+    }
   }
 
   void _selectCategory(String category) {
     setState(() {
-      selectedCategory =
-          selectedCategory == category ? "" : category;
+      selectedCategory = selectedCategory == category ? "" : category;
       _filterTools(searchController.text);
     });
   }
 
   void _filterTools(String query) {
-    filteredTools = allTools.where((tool) {
-      final matchesCategory =
-          selectedCategory.isEmpty || tool["category"] == selectedCategory;
-      final matchesQuery =
-          tool["title"]!.toLowerCase().contains(query.toLowerCase());
-      return matchesCategory && matchesQuery;
-    }).toList();
-    setState(() {});
-  }
-
-  void _incrementCounter() {
     setState(() {
-      totalAdded += 1;
+      filteredTools = allTools.where((tool) {
+        final matchesCategory = selectedCategory.isEmpty ||
+            tool['category'].toString() == selectedCategory;
+
+        final matchesQuery = (tool['title'] ?? "")
+            .toString()
+            .toLowerCase()
+            .contains(query.toLowerCase());
+
+        return matchesCategory && matchesQuery;
+      }).toList();
     });
   }
+  void _addToCart(Map<String, dynamic> alat) {
+  KeranjangService.tambahAlat({
+    'id': alat['id'],
+    'title': alat['title'],
+    'image': alat['image_path'],
+    'stock': alat['stock'],
+  });
+
+  setState(() {
+    totalAdded = KeranjangService.totalAlat();
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("Alat ditambahkan ke keranjang"),
+      duration: Duration(seconds: 1),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +194,7 @@ class _DaftarAlatState extends State<DaftarAlat> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                tool["status"]!,
+                                (tool["status"] ?? "Unknown").toString(),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -219,15 +209,21 @@ class _DaftarAlatState extends State<DaftarAlat> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               alignment: Alignment.center,
-                              child: Image.asset(
-                                tool["image"]!,
+                              child: Image.network(
+                                (tool["image_path"] ?? "").toString(),
                                 fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) {
+                                  return Image.asset(
+                                    'assets/images/default.jpg',
+                                    fit: BoxFit.contain,
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(height: 12),
                             Center(
                               child: Text(
-                                tool["title"]!,
+                                (tool["title"] ?? "Tanpa Nama").toString(),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -236,7 +232,7 @@ class _DaftarAlatState extends State<DaftarAlat> {
                             ),
                             Center(
                               child: Text(
-                                tool["stock"]!,
+                                (tool["stock"] ?? 0).toString(),
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -250,7 +246,7 @@ class _DaftarAlatState extends State<DaftarAlat> {
                         bottom: 8,
                         right: 8,
                         child: GestureDetector(
-                          onTap: _incrementCounter,
+                          onTap: () => _addToCart(tool),
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: const BoxDecoration(
@@ -275,7 +271,7 @@ class _DaftarAlatState extends State<DaftarAlat> {
 
       // ================= BOTTOM NAV =================
       bottomNavigationBar: BottomNav(
-        currentIndex: 0, // DaftarAlat
+        currentIndex: 0,
         boxCount: totalAdded,
       ),
     );
