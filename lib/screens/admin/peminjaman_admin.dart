@@ -13,24 +13,24 @@ class PeminjamanAdmin extends StatefulWidget {
 class _PeminjamanAdminState extends State<PeminjamanAdmin> {
   final TextEditingController searchController = TextEditingController();
 
-  final List<Map<String, String>> data = [
-    {
-      "nama": "CHELLA ROBIATUL A",
-      "alat": "Power Meter, Test Pen, Volt Meter",
-      "tanggal peminjaman": "03 - Januari - 2026",
-      "tanggal kembali": "13 - Januari - 2026",
-      "status": "Dipinjam",
-    },
-    {
-      "nama": "ANDI PRATAMA",
-      "alat": "Multimeter, Oscilloscope",
-      "tanggal peminjaman": "03 - Januari - 2026",
-      "tanggal kembali": "13 - Januari - 2026",
-      "status": "Dipinjam",
-    },
-  ];
-
   late ValueNotifier<List<Map<String, String>>> filtered;
+  List<Map<String, String>> data = [
+  {
+    "nama": "Budi",
+    "alat": "Laptop",
+    "tanggal peminjaman": "01/02/2026",
+    "tanggal kembali": "05/02/2026",
+    "status": "approve", // langsung approve
+  },
+  {
+    "nama": "Siti",
+    "alat": "Proyektor",
+    "tanggal peminjaman": "02/02/2026",
+    "tanggal kembali": "06/02/2026",
+    "status": "pending",
+  },
+];
+
 
   @override
   void initState() {

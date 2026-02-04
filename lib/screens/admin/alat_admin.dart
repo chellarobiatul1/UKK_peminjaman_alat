@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/widget/admin/edit_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/drawer_admin.dart';
-import 'kategori_alat.dart';
+import '../../widget/admin/kategori_alat.dart';
 import 'package:peminjaman_alat/service/alat_service.dart';
 
 class AlatAdmin extends StatefulWidget {

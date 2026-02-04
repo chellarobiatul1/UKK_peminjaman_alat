@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
-import 'package:peminjaman_alat/screens/auth/login_page.dart';
+import 'package:peminjaman_alat/auth/login_page.dart';
 
 class ProfilePeminjam extends StatelessWidget {
   const ProfilePeminjam({super.key});

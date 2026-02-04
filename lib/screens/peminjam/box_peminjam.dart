@@ -133,7 +133,7 @@ class _BoxPeminjamState extends State<BoxPeminjam> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AjukanPeminjaman(
+                    builder: (_) => DetailPeminjaman(
                       alatList: alatList,
                     ),
                   ),

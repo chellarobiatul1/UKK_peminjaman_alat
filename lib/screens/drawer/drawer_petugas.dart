@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/auth/login_page.dart';
+import 'package:peminjaman_alat/auth/login_page.dart';
 import 'package:peminjaman_alat/screens/petugas/dashboard_petugas.dart';
 import 'package:peminjaman_alat/screens/petugas/persetujuan_page.dart';
 import 'package:peminjaman_alat/screens/petugas/cetak_laporan_page.dart';

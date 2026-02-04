@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/admin/alat_admin.dart';
 import 'package:peminjaman_alat/screens/admin/dashboard_admin.dart';
+import 'package:peminjaman_alat/screens/admin/kategori_admin.dart';
 import 'package:peminjaman_alat/screens/admin/pengembalian_admin.dart';
 import 'package:peminjaman_alat/screens/admin/pengguna_admin.dart';
 import 'package:peminjaman_alat/screens/admin/peminjaman_admin.dart';
-import 'package:peminjaman_alat/screens/auth/login_page.dart';
+import 'package:peminjaman_alat/auth/login_page.dart';
 
 class DrawerAdmin extends StatelessWidget {
   const DrawerAdmin({super.key});
@@ -128,6 +129,19 @@ class DrawerAdmin extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => const PengembalianAdmin(),
+                ),
+              );
+            },
+          ),
+           _drawerItem(
+            context,
+            icon: Icons.list_alt,
+            title: 'Management Kategori',
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const KategoriAdmin(),
                 ),
               );
             },

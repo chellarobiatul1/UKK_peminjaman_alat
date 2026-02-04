@@ -2,42 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
 import 'package:peminjaman_alat/screens/peminjam/confirmation_page.dart';
 
-class AjukanPeminjaman extends StatefulWidget {
+class DetailPeminjaman extends StatefulWidget {
   final List<Map<String, dynamic>> alatList;
 
-  const AjukanPeminjaman({
-    super.key,
-    required this.alatList,
-  });
+  const DetailPeminjaman({super.key, required this.alatList});
 
   @override
-  State<AjukanPeminjaman> createState() => _AjukanPeminjamanState();
+  State<DetailPeminjaman> createState() => _DetailPeminjamanState();
 }
 
-class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
+class _DetailPeminjamanState extends State<DetailPeminjaman> {
   final TextEditingController namaController = TextEditingController();
   final TextEditingController userController = TextEditingController();
   final TextEditingController tanggalPinjamController = TextEditingController();
   final TextEditingController tanggalKembaliController = TextEditingController();
 
   Future<void> pilihTanggal(TextEditingController controller) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
+   DateTime? pickedDate = await showDatePicker(
+  context: context,
+  initialDate: DateTime.now(),
+  firstDate: DateTime.now(),
+  lastDate: DateTime(2100),
+);
 
-    if (pickedDate != null) {
-      controller.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-    }
+if (pickedDate != null) {
+  // Format untuk Supabase
+  controller.text = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2,'0')}-${pickedDate.day.toString().padLeft(2,'0')}";
+}
+
   }
 
   @override
   Widget build(BuildContext context) {
     const Color orangeColor = Color(0xFFF4A261);
 
-    // Hitung total box untuk bottom nav
     final int boxCount = widget.alatList.fold<int>(
       0,
       (sum, item) => sum + (item['count'] as int),
@@ -57,7 +55,8 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
+                    child:
+                        const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
                   ),
                   const SizedBox(width: 12),
                   const Text(
@@ -73,7 +72,6 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
             ),
 
             const SizedBox(height: 10),
-
             Container(
               padding: const EdgeInsets.only(left: 20),
               alignment: Alignment.centerLeft,
@@ -82,14 +80,14 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ),
-
             const SizedBox(height: 10),
 
             // ===== DATA DIRI =====
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
                 elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -97,7 +95,8 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                     children: [
                       const Text(
                         'Data Diri',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                        style:
+                            TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -127,7 +126,8 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
                 elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -135,7 +135,8 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                     children: [
                       const Text(
                         'Tanggal',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                        style:
+                            TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -169,7 +170,8 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
                 elevation: 2,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -178,11 +180,11 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                     children: [
                       const Text(
                         'Alat',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                        style:
+                            TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                       const SizedBox(height: 8),
 
-                      // Buat kotak alat sesuai jumlah alat di list
                       ...widget.alatList.map(
                         (alat) => Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -212,15 +214,15 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                               Expanded(
                                 child: Text(
                                   alat['title'],
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600),
                                 ),
                               ),
                               Text(
                                 "${alat['count']} pcs",
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.delete, color: Colors.red),
                             ],
                           ),
                         ),
@@ -244,21 +246,20 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                       builder: (_) => ConfirmationPage(
-
-  nama: namaController.text,
-  user: userController.text,
-  tanggalPinjam: tanggalPinjamController.text,
-  tanggalKembali: tanggalKembaliController.text,
-  alatList: widget.alatList,
-)
-
+                        builder: (_) => ConfirmationPage(
+                          nama: namaController.text,
+                          user: userController.text,
+                          tanggalPinjam: tanggalPinjamController.text,
+                          tanggalKembali: tanggalKembaliController.text,
+                          alatList: widget.alatList,
+                        ),
                       ),
                     );
                   },
                   child: const Text(
-                    'ajukan',
-                    style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black),
+                    'Ajukan',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, color: Colors.black),
                   ),
                 ),
               ),
@@ -267,7 +268,6 @@ class _AjukanPeminjamanState extends State<AjukanPeminjaman> {
         ),
       ),
 
-      // ===== BOTTOM NAV =====
       bottomNavigationBar: BottomNav(
         currentIndex: 1,
         boxCount: boxCount,

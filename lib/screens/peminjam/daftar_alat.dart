@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:peminjaman_alat/screens/admin/kategori_alat.dart';
+import 'package:peminjaman_alat/widget/admin/kategori_alat.dart';
 import 'package:peminjaman_alat/screens/drawer/bottomnav_peminjam.dart';
 import 'package:peminjaman_alat/service/crud_alat_service.dart';
 import 'package:peminjaman_alat/service/keranjang_service.dart';
